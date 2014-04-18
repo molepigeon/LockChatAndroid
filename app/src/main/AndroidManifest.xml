@@ -19,7 +19,8 @@
         <activity
             android:name="com.molepigeon.lockchat.app.ConversationDetailActivity"
             android:label="@string/title_conversation_detail"
-            android:parentActivityName="com.molepigeon.lockchat.app.ConversationListActivity" >
+            android:parentActivityName="com.molepigeon.lockchat.app.ConversationListActivity"
+            android:windowSoftInputMode="adjustResize">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.molepigeon.lockchat.app.ConversationListActivity" />

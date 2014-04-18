@@ -5,9 +5,12 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 import com.molepigeon.lockchat.app.dummy.DummyContent;
+
+import java.util.ArrayList;
 
 /**
  * A fragment representing a single Conversation detail screen.
@@ -22,11 +25,8 @@ public class ConversationDetailFragment extends Fragment {
      */
     public static final String ARG_ITEM_ID = "item_id";
 
-    /**
-     * The dummy content this fragment is presenting.
-     */
-    private DummyContent.DummyItem mItem;
-
+    ArrayList<String> listItems=new ArrayList<String>();
+    ArrayAdapter<String> adapter;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -42,20 +42,24 @@ public class ConversationDetailFragment extends Fragment {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+            /*
+      The dummy content this fragment is presenting.
+     */
+            DummyContent.DummyItem mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+            getActivity().setTitle(mItem.content);
+
+            adapter=new ArrayAdapter<String>(getActivity(),
+                    android.R.layout.simple_list_item_1,
+                    listItems);
+            ListView listView = (ListView) getActivity().findViewById(android.R.id.list);
+            listView.setAdapter(adapter);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_conversation_detail, container, false);
-
-        // Show the dummy content as text in a TextView.
-        if (mItem != null) {
-            ((TextView) rootView.findViewById(R.id.conversation_detail)).setText(mItem.content);
-        }
-
-        return rootView;
+        return inflater.inflate(R.layout.fragment_conversation_detail, container, false);
     }
+
 }

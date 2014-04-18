@@ -3,5 +3,7 @@
 
     <string name="app_name">LockChat</string>
     <string name="title_conversation_detail">Conversation</string>
+    <string name="message_hint">Enter a message</string>
+    <string name="send_description">Send message</string>
 
 </resources>

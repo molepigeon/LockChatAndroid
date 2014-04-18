@@ -1,10 +1,19 @@
 package com.molepigeon.lockchat.app;
 
+import android.app.ListActivity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.molepigeon.lockchat.app.dummy.DummyContent;
+
+import java.util.ArrayList;
 
 /**
  * An activity representing a single Conversation detail screen. This
@@ -15,7 +24,10 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link ConversationDetailFragment}.
  */
-public class ConversationDetailActivity extends FragmentActivity {
+public class ConversationDetailActivity extends ListActivity {
+
+    ArrayList<String> listItems=new ArrayList<String>();
+    ArrayAdapter<String> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,18 +46,27 @@ public class ConversationDetailActivity extends FragmentActivity {
         //
         // http://developer.android.com/guide/components/fragments.html
         //
-        if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
-            Bundle arguments = new Bundle();
-            arguments.putString(ConversationDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(ConversationDetailFragment.ARG_ITEM_ID));
-            ConversationDetailFragment fragment = new ConversationDetailFragment();
-            fragment.setArguments(arguments);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.conversation_detail_container, fragment)
-                    .commit();
-        }
+//        if (savedInstanceState == null) {
+//            // Create the detail fragment and add it to the activity
+//            // using a fragment transaction.
+//            Bundle arguments = new Bundle();
+//            arguments.putString(ConversationDetailFragment.ARG_ITEM_ID,
+//                    getIntent().getStringExtra(ConversationDetailFragment.ARG_ITEM_ID));
+//            ConversationDetailFragment fragment = new ConversationDetailFragment();
+//            fragment.setArguments(arguments);
+//            getSupportFragmentManager().beginTransaction()
+//                    .add(R.id.conversation_detail_container, fragment)
+//                    .commit();
+//        }
+
+        String item_id = getIntent().getStringExtra(ConversationDetailFragment.ARG_ITEM_ID);
+        DummyContent.DummyItem mItem = DummyContent.ITEM_MAP.get(item_id);
+        setTitle(mItem.content);
+
+        adapter=new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1,
+                listItems);
+        setListAdapter(adapter);
     }
 
     @Override
@@ -63,5 +84,23 @@ public class ConversationDetailActivity extends FragmentActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void sendMessage (View view){
+
+        //TODO implement this properly
+        EditText editText = (EditText)findViewById(R.id.editText);
+        String messageText = editText.getText().toString();
+
+        Context context;
+        context = getApplicationContext();
+        int duration = Toast.LENGTH_SHORT;
+
+        Toast toast = Toast.makeText(context, messageText, duration);
+        toast.show();
+
+        listItems.add(messageText);
+        adapter.notifyDataSetChanged();
+
     }
 }

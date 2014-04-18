@@ -1,9 +1,43 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/conversation_detail_container"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_weight="1"
+    android:orientation="vertical"
     tools:context="com.molepigeon.lockchat.app.ConversationDetailActivity"
     tools:ignore="MergeRootFrame">
 
-</FrameLayout>
+
+    <ListView
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:id="@android:id/list"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/abc_action_bar_default_height">
+
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="@dimen/abc_action_bar_default_height"
+            android:id="@+id/editText"
+            android:layout_gravity="bottom"
+            android:hint="@string/message_hint"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/abc_action_bar_default_height"
+            android:id="@+id/imageButton"
+            android:src="@drawable/ic_action_send_now"
+            android:background="#ffffffff"
+            android:layout_gravity="bottom"
+            android:onClick="sendMessage"
+            android:contentDescription="@string/send_description"/>
+
+    </LinearLayout>
+
+</LinearLayout>
