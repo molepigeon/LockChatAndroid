@@ -25,14 +25,17 @@ public class ConversationListActivity extends Activity
 
     public static final String PEOPLE_MESSAGE = "people_message";
     public static ArrayList<String> people = new ArrayList<String>();
+    private static boolean firstRun = true;
     NfcAdapter mNfcAdapter;
-    private int items = 0;
     private ArrayAdapter<String> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversation_list);
+
+        people.clear();
+
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, people);
 
         ListView listView = (ListView) findViewById(R.id.listView);
@@ -54,7 +57,14 @@ public class ConversationListActivity extends Activity
         }
         mNfcAdapter.setNdefPushMessageCallback(this, this);
 
-        Toast.makeText(this, "Beam with another device with LockChat to get started!", Toast.LENGTH_LONG);
+        String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID));
+        people.add(text);
+        adapter.notifyDataSetChanged();
+
+        if (firstRun) {
+            Toast.makeText(this, "Beam with another device with LockChat to get started!", Toast.LENGTH_LONG).show();
+        }
+        firstRun = false;
     }
 
     @Override
@@ -94,5 +104,6 @@ public class ConversationListActivity extends Activity
         // record 0 contains the MIME type, record 1 is the AAR, if present
         //Toast.makeText(this, new String(msg.getRecords()[0].getPayload()), Toast.LENGTH_SHORT).show();
         people.add(new String(msg.getRecords()[0].getPayload()));
+        adapter.notifyDataSetChanged();
     }
 }

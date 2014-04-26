@@ -3,6 +3,8 @@
     package="com.molepigeon.lockchat.app">
 
     <uses-permission android:name="android.permission.NFC" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <uses-feature
         android:name="android.hardware.nfc"
         android:required="true" />
