@@ -9,7 +9,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 
-public class Register extends Activity {
+public class RegisterActivity extends Activity {
 
     private String messageText;
 
@@ -42,7 +42,7 @@ public class Register extends Activity {
 
         protected void onPostExecute(String result) {
             try {
-                Toast.makeText(Register.this, result, Toast.LENGTH_SHORT).show();
+                Toast.makeText(RegisterActivity.this, result, Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 e.printStackTrace();
             }

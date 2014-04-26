@@ -39,7 +39,7 @@
                 android:value="com.molepigeon.lockchat.app.ConversationListActivity" />
         </activity>
         <activity
-            android:name="com.molepigeon.lockchat.app.Register"
+            android:name=".RegisterActivity"
             android:label="@string/title_activity_register"
             android:parentActivityName="com.molepigeon.lockchat.app.ConversationListActivity">
             <meta-data

@@ -124,7 +124,7 @@ public class ConversationListActivity extends Activity
         int id = item.getItemId();
         if (id == R.id.action_add_person) {
             //openSettings();
-            Intent intent = new Intent(this, Register.class);
+            Intent intent = new Intent(this, RegisterActivity.class);
             startActivity(intent);
             return true;
         }
