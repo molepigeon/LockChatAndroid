@@ -7,6 +7,7 @@ import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcAdapter.CreateNdefMessageCallback;
 import android.nfc.NfcEvent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.Settings.Secure;
@@ -24,17 +25,19 @@ public class ConversationListActivity extends Activity
         implements CreateNdefMessageCallback {
 
     public static final String PEOPLE_MESSAGE = "people_message";
+    public static final String ID_MESSAGE = "id_message";
     public static ArrayList<String> people = new ArrayList<String>();
+    public static ArrayList<String> IDs = new ArrayList<String>();
     private static boolean firstRun = true;
     NfcAdapter mNfcAdapter;
+    private String nfcMessage = "";
     private ArrayAdapter<String> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        System.out.println(Secure.getString(getContentResolver(), Secure.ANDROID_ID));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversation_list);
-
-        people.clear();
 
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, people);
 
@@ -45,6 +48,8 @@ public class ConversationListActivity extends Activity
                 Intent intent = new Intent(view.getContext(), ConversationDetailActivity.class);
                 String messageText = people.get(position);
                 intent.putExtra(PEOPLE_MESSAGE, messageText);
+                messageText = IDs.get(position);
+                intent.putExtra(ID_MESSAGE, messageText);
                 startActivity(intent);
             }
         });
@@ -57,12 +62,18 @@ public class ConversationListActivity extends Activity
         }
         mNfcAdapter.setNdefPushMessageCallback(this, this);
 
-        String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID));
-        people.add(text);
-        adapter.notifyDataSetChanged();
-
         if (firstRun) {
             Toast.makeText(this, "Beam with another device with LockChat to get started!", Toast.LENGTH_LONG).show();
+
+            //DEBUG user - Delete this when finished
+            String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID));
+            IDs.add(text);
+            text = "Debug User - Loopback";
+            people.add(text);
+            adapter.notifyDataSetChanged();
+            //End debug user
+
+            //TODO register device
         }
         firstRun = false;
     }
@@ -103,7 +114,33 @@ public class ConversationListActivity extends Activity
         NdefMessage msg = (NdefMessage) rawMsgs[0];
         // record 0 contains the MIME type, record 1 is the AAR, if present
         //Toast.makeText(this, new String(msg.getRecords()[0].getPayload()), Toast.LENGTH_SHORT).show();
-        people.add(new String(msg.getRecords()[0].getPayload()));
-        adapter.notifyDataSetChanged();
+        nfcMessage = new String(msg.getRecords()[0].getPayload());
+        IDs.add(nfcMessage);
+        new UserGetter().execute();
+    }
+
+    private class UserGetter extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            Network network = new Network();
+            String returned = null;
+
+            try {
+                returned = network.getUser(nfcMessage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return returned;
+        }
+
+        protected void onPostExecute(String result) {
+            try {
+                people.add(result);
+                adapter.notifyDataSetChanged();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

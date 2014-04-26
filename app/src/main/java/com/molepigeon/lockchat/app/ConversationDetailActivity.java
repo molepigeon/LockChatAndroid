@@ -37,8 +37,8 @@ public class ConversationDetailActivity extends ListActivity {
         // Show the Up button in the action bar.
         getActionBar().setDisplayHomeAsUpEnabled(true);
 
-        item_id = getIntent().getStringExtra(ConversationListActivity.PEOPLE_MESSAGE);
-        setTitle(item_id);
+        item_id = getIntent().getStringExtra(ConversationListActivity.ID_MESSAGE);
+        setTitle(getIntent().getStringExtra(ConversationListActivity.PEOPLE_MESSAGE));
 
         adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1,
