@@ -5,7 +5,9 @@
     <string name="title_conversation_detail">Conversation</string>
     <string name="message_hint">Enter a message</string>
     <string name="send_description">Send message</string>
-    <string name="action_add">Add Item</string>
-
+    <string name="action_add_person">Register Yourself</string>
+    <string name="title_activity_register">Register</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 
 </resources>

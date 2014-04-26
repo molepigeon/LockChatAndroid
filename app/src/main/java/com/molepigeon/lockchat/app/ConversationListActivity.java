@@ -11,6 +11,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.Settings.Secure;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -26,9 +28,11 @@ public class ConversationListActivity extends Activity
 
     public static final String PEOPLE_MESSAGE = "people_message";
     public static final String ID_MESSAGE = "id_message";
+    public static String myName = "";
     public static ArrayList<String> people = new ArrayList<String>();
     public static ArrayList<String> IDs = new ArrayList<String>();
     private static boolean firstRun = true;
+    private static String lastNFC = "";
     NfcAdapter mNfcAdapter;
     private String nfcMessage = "";
     private ArrayAdapter<String> adapter;
@@ -54,6 +58,16 @@ public class ConversationListActivity extends Activity
             }
         });
 
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(view.getContext(), "Conversation with " + people.get(position) + " deleted.", Toast.LENGTH_SHORT).show();
+                people.remove(position);
+                IDs.remove(position);
+                adapter.notifyDataSetChanged();
+                return true;
+            }
+        });
+
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
         if (mNfcAdapter == null) {
             Toast.makeText(this, "NFC is not available", Toast.LENGTH_LONG).show();
@@ -68,12 +82,13 @@ public class ConversationListActivity extends Activity
             //DEBUG user - Delete this when finished
             String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID));
             IDs.add(text);
-            text = "Debug User - Loopback";
+            text = "Loopback";
             people.add(text);
             adapter.notifyDataSetChanged();
             //End debug user
 
-            //TODO register device
+            new FindMyName().execute("");
+
         }
         firstRun = false;
     }
@@ -91,6 +106,29 @@ public class ConversationListActivity extends Activity
     public void onNewIntent(Intent intent) {
         // onResume gets called after this to handle the intent
         setIntent(intent);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.conversation_list, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        if (id == R.id.action_add_person) {
+            //openSettings();
+            Intent intent = new Intent(this, Register.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -115,8 +153,11 @@ public class ConversationListActivity extends Activity
         // record 0 contains the MIME type, record 1 is the AAR, if present
         //Toast.makeText(this, new String(msg.getRecords()[0].getPayload()), Toast.LENGTH_SHORT).show();
         nfcMessage = new String(msg.getRecords()[0].getPayload());
-        IDs.add(nfcMessage);
-        new UserGetter().execute();
+        if (!lastNFC.contentEquals(nfcMessage)) {
+            IDs.add(nfcMessage);
+            new UserGetter().execute();
+            lastNFC = nfcMessage;
+        }
     }
 
     private class UserGetter extends AsyncTask<String, Void, String> {
@@ -138,6 +179,30 @@ public class ConversationListActivity extends Activity
             try {
                 people.add(result);
                 adapter.notifyDataSetChanged();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private class FindMyName extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            Network network = new Network();
+            String returned = null;
+
+            try {
+                returned = network.getUser(Secure.getString(getContentResolver(), Secure.ANDROID_ID));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return returned;
+        }
+
+        protected void onPostExecute(String result) {
+            try {
+                myName = result;
             } catch (Exception e) {
                 e.printStackTrace();
             }
