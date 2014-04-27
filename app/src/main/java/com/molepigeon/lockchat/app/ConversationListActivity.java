@@ -20,6 +20,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import static android.nfc.NdefRecord.createMime;
 
@@ -28,9 +29,12 @@ public class ConversationListActivity extends Activity
 
     public static final String PEOPLE_MESSAGE = "people_message";
     public static final String ID_MESSAGE = "id_message";
+    public static final String KEY_MESSAGE = "key_message";
     public static String myName = "";
     public static ArrayList<String> people = new ArrayList<String>();
     public static ArrayList<String> IDs = new ArrayList<String>();
+    public static ArrayList<String> publicKeys = new ArrayList<String>();
+    public static int thisKey = 0;
     private static boolean firstRun = true;
     private static String lastNFC = "";
     NfcAdapter mNfcAdapter;
@@ -39,7 +43,6 @@ public class ConversationListActivity extends Activity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        System.out.println(Secure.getString(getContentResolver(), Secure.ANDROID_ID));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conversation_list);
 
@@ -54,6 +57,8 @@ public class ConversationListActivity extends Activity
                 intent.putExtra(PEOPLE_MESSAGE, messageText);
                 messageText = IDs.get(position);
                 intent.putExtra(ID_MESSAGE, messageText);
+                messageText = publicKeys.get(position);
+                intent.putExtra(KEY_MESSAGE, messageText);
                 startActivity(intent);
             }
         });
@@ -79,14 +84,16 @@ public class ConversationListActivity extends Activity
         if (firstRun) {
             Toast.makeText(this, "Beam with another device with LockChat to get started!", Toast.LENGTH_LONG).show();
 
+            thisKey = new Random().nextInt(10);
+
             //DEBUG user - Delete this when finished
             String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID));
             IDs.add(text);
             text = "Loopback";
             people.add(text);
+            publicKeys.add(String.valueOf(thisKey));
             adapter.notifyDataSetChanged();
             //End debug user
-
             new FindMyName().execute("");
 
         }
@@ -133,7 +140,7 @@ public class ConversationListActivity extends Activity
 
     @Override
     public NdefMessage createNdefMessage(NfcEvent event) {
-        String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID));
+        String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID) + " " + String.valueOf(thisKey));
         return new NdefMessage(
                 new NdefRecord[]{createMime(
                         "application/vnd.com.molepigeon.lockchat.app", text.getBytes())
@@ -152,10 +159,13 @@ public class ConversationListActivity extends Activity
         NdefMessage msg = (NdefMessage) rawMsgs[0];
         // record 0 contains the MIME type, record 1 is the AAR, if present
         //Toast.makeText(this, new String(msg.getRecords()[0].getPayload()), Toast.LENGTH_SHORT).show();
-        nfcMessage = new String(msg.getRecords()[0].getPayload());
+        String payload = new String(msg.getRecords()[0].getPayload());
+        String[] splitPayload = payload.split(" ");
+        nfcMessage = splitPayload[0];
         if (!lastNFC.contentEquals(nfcMessage)) {
             IDs.add(nfcMessage);
             new UserGetter().execute();
+            publicKeys.add(splitPayload[1]);
             lastNFC = nfcMessage;
         }
     }

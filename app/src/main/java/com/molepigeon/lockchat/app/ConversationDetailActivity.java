@@ -18,7 +18,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import java.io.StringReader;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -32,6 +31,7 @@ public class ConversationDetailActivity extends ListActivity {
     String item_id;
     String message = "";
     String name = "";
+    int recipientsKey = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +43,7 @@ public class ConversationDetailActivity extends ListActivity {
 
         item_id = getIntent().getStringExtra(ConversationListActivity.ID_MESSAGE);
         name = getIntent().getStringExtra(ConversationListActivity.PEOPLE_MESSAGE);
+        recipientsKey = Integer.parseInt(getIntent().getStringExtra(ConversationListActivity.KEY_MESSAGE));
         setTitle(name);
 
         adapter = new ArrayAdapter<String>(this,
@@ -52,7 +53,7 @@ public class ConversationDetailActivity extends ListActivity {
 
         new MessageFetcher().execute("");
         adapter.notifyDataSetChanged();
-        scheduleNewMessageFetch();
+        handlerTask.run();
     }
 
     @Override
@@ -66,12 +67,6 @@ public class ConversationDetailActivity extends ListActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        handler.removeCallbacks(handlerTask);
-    }
-
     final Runnable handlerTask = new Runnable() {
         @Override
         public void run() {
@@ -80,38 +75,18 @@ public class ConversationDetailActivity extends ListActivity {
         }
     };
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        handler.removeCallbacks(handlerTask);
+    }
+
     public void sendMessage(View view) {
 
         EditText editText = (EditText) findViewById(R.id.editText);
         message = editText.getText().toString();
         editText.setText("");
         new MessageSender().execute("");
-    }
-
-    private void scheduleNewMessageFetch() {
-//        TimerTask aSyncTask;
-//        final Handler handler = new Handler();
-//        Timer timer = new Timer();
-//        aSyncTask = new TimerTask() {
-//            @Override
-//            public void run() {
-//                handler.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        try{
-//                           new NewMessageFetcher().execute("");
-//                        }catch(Exception e){
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                });
-//            }
-//        };
-//
-//        timer.schedule(aSyncTask, 5000, 5000);
-
-        handlerTask.run();
-
     }
 
     private class MessageFetcher extends AsyncTask<String, Void, String> {
@@ -140,7 +115,11 @@ public class ConversationDetailActivity extends ListActivity {
                 NodeList nl = n.getChildNodes();
                 for (int i = 0; i < nl.getLength(); i++) {
                     if (nl.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-                        listItems.add(name + ": " + nl.item(i).getTextContent());
+                        StringBuilder decryptedString = new StringBuilder();
+                        for (char character : nl.item(i).getTextContent().toCharArray()) {
+                            decryptedString.append((char) (character - ConversationListActivity.thisKey));
+                        }
+                        listItems.add(name + ": " + decryptedString.toString());
                     }
                 }
                 adapter.notifyDataSetChanged();
@@ -177,7 +156,11 @@ public class ConversationDetailActivity extends ListActivity {
                 NodeList nl = n.getChildNodes();
                 for (int i = 0; i < nl.getLength(); i++) {
                     if (nl.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-                        listItems.add(name + ": " + nl.item(i).getTextContent());
+                        StringBuilder decryptedString = new StringBuilder();
+                        for (char character : nl.item(i).getTextContent().toCharArray()) {
+                            decryptedString.append((char) (character - ConversationListActivity.thisKey));
+                        }
+                        listItems.add(name + ": " + decryptedString.toString());
                     }
                 }
                 adapter.notifyDataSetChanged();
@@ -194,8 +177,13 @@ public class ConversationDetailActivity extends ListActivity {
             Network network = new Network();
             String returned = null;
 
+            StringBuilder encryptedString = new StringBuilder();
+            for (char character : message.toCharArray()) {
+                encryptedString.append((char) (character + recipientsKey));
+            }
+
             try {
-                returned = network.sendMessage(item_id, Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID), message);
+                returned = network.sendMessage(item_id, Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID), encryptedString.toString());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -205,14 +193,17 @@ public class ConversationDetailActivity extends ListActivity {
 
         protected void onPostExecute(String result) {
             try {
-                result = URLDecoder.decode(result, "UTF-8");
-                listItems.add(ConversationListActivity.myName + ": " + result);
+                listItems.add(ConversationListActivity.myName + ": " + message);
                 adapter.notifyDataSetChanged();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
+
+
+
+
 
 
 }
