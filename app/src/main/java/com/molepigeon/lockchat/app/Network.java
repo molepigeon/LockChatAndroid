@@ -33,7 +33,6 @@ public class Network {
         }
         in.close();
         data = sb.toString();
-        data = URLDecoder.decode(data, "UTF-8");
         return data;
     }
 
@@ -58,7 +57,6 @@ public class Network {
         }
         in.close();
         data = sb.toString();
-        data = URLDecoder.decode(data, "UTF-8");
         return data;
     }
 

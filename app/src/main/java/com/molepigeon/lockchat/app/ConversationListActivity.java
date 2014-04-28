@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.Settings.Secure;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,8 +20,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.util.ArrayList;
-import java.util.Random;
 
 import static android.nfc.NdefRecord.createMime;
 
@@ -34,7 +36,7 @@ public class ConversationListActivity extends Activity
     public static ArrayList<String> people = new ArrayList<String>();
     public static ArrayList<String> IDs = new ArrayList<String>();
     public static ArrayList<String> publicKeys = new ArrayList<String>();
-    public static int thisKey = 0;
+    public static KeyPair thisKey;
     private static boolean firstRun = true;
     private static String lastNFC = "";
     NfcAdapter mNfcAdapter;
@@ -84,14 +86,24 @@ public class ConversationListActivity extends Activity
         if (firstRun) {
             Toast.makeText(this, "Beam with another device with LockChat to get started!", Toast.LENGTH_LONG).show();
 
-            thisKey = new Random().nextInt(10);
+            try {
+                KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+                thisKey = keyPairGenerator.generateKeyPair();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            //Test base64 encoding
+            String blah = "blah";
+            String blahEncoded = Base64.encodeToString(blah.getBytes(), Base64.DEFAULT);
+            System.out.println(new String(Base64.decode(blahEncoded.getBytes(), Base64.DEFAULT)));
 
             //DEBUG user - Delete this when finished
             String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID));
             IDs.add(text);
             text = "Loopback";
             people.add(text);
-            publicKeys.add(String.valueOf(thisKey));
+            publicKeys.add(Base64.encodeToString(thisKey.getPublic().getEncoded(), Base64.URL_SAFE));
             adapter.notifyDataSetChanged();
             //End debug user
             new FindMyName().execute("");
@@ -140,7 +152,7 @@ public class ConversationListActivity extends Activity
 
     @Override
     public NdefMessage createNdefMessage(NfcEvent event) {
-        String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID) + " " + String.valueOf(thisKey));
+        String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID) + " " + Base64.encodeToString(thisKey.getPublic().getEncoded(), Base64.URL_SAFE));
         return new NdefMessage(
                 new NdefRecord[]{createMime(
                         "application/vnd.com.molepigeon.lockchat.app", text.getBytes())
@@ -158,7 +170,6 @@ public class ConversationListActivity extends Activity
         // only one message sent during the beam
         NdefMessage msg = (NdefMessage) rawMsgs[0];
         // record 0 contains the MIME type, record 1 is the AAR, if present
-        //Toast.makeText(this, new String(msg.getRecords()[0].getPayload()), Toast.LENGTH_SHORT).show();
         String payload = new String(msg.getRecords()[0].getPayload());
         String[] splitPayload = payload.split(" ");
         nfcMessage = splitPayload[0];
