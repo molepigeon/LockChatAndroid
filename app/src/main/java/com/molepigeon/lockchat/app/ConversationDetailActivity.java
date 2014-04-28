@@ -35,10 +35,17 @@ public class ConversationDetailActivity extends ListActivity {
     String item_id;
     String message = "";
     String name = "";
+    final Runnable handlerTask = new Runnable() {
+        @Override
+        public void run() {
+            new NewMessageFetcher().execute("");
+            handler.postDelayed(handlerTask, 5000);
+        }
+    };
     String recipientsKey = "";
-
     Cipher ecipher;
     Cipher dcipher;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,14 +105,6 @@ public class ConversationDetailActivity extends ListActivity {
         new MessageSender().execute("");
     }
 
-    final Runnable handlerTask = new Runnable() {
-        @Override
-        public void run() {
-            new NewMessageFetcher().execute("");
-            handler.postDelayed(handlerTask, 5000);
-        }
-    };
-
     private class MessageFetcher extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... params) {
@@ -134,7 +133,7 @@ public class ConversationDetailActivity extends ListActivity {
                 for (int i = 0; i < nl.getLength(); i++) {
                     if (nl.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
                         temp = Base64.decode(nl.item(i).getTextContent().getBytes(), Base64.URL_SAFE);
-                        listItems.add(new String(dcipher.doFinal(temp)));
+                        listItems.add(name + ": " + new String(dcipher.doFinal(temp)));
                     }
                 }
                 adapter.notifyDataSetChanged();
@@ -173,7 +172,7 @@ public class ConversationDetailActivity extends ListActivity {
                 for (int i = 0; i < nl.getLength(); i++) {
                     if (nl.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
                         temp = Base64.decode(nl.item(i).getTextContent().getBytes(), Base64.URL_SAFE);
-                        listItems.add(new String(dcipher.doFinal(temp)));
+                        listItems.add(name + ": " + new String(dcipher.doFinal(temp)));
                     }
                 }
                 adapter.notifyDataSetChanged();
@@ -210,8 +209,6 @@ public class ConversationDetailActivity extends ListActivity {
             }
         }
     }
-
-
 
 
 }

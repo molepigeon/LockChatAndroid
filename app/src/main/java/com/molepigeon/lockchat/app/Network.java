@@ -137,4 +137,44 @@ public class Network {
         }
         return output;
     }
+
+    public String sendKey(String deviceID, String sessionKey, String payload) {
+        String output = "Error - Check console";
+        try {
+            HttpClient client = new DefaultHttpClient();
+            URI uri = new URI("http://molepigeon.com:80/lockchat/addKey.php?deviceID=" + deviceID + "&sessionKey=" + sessionKey + "&payload=" + payload);
+            HttpGet request = new HttpGet();
+            request.setURI(uri);
+            HttpResponse response = client.execute(request);
+            response.getStatusLine().getStatusCode();
+            output = deviceID;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return output;
+    }
+
+    public String getKey(String deviceID) throws Exception {
+        BufferedReader in;
+        String data;
+
+        HttpClient client = new DefaultHttpClient();
+        URI uri = new URI("http://molepigeon.com:80/lockchat/getMessages.php?deviceID=" + deviceID);
+        HttpGet request = new HttpGet();
+        request.setURI(uri);
+        HttpResponse response = client.execute(request);
+        response.getStatusLine().getStatusCode();
+
+        in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+        StringBuilder sb = new StringBuilder("");
+        String l;
+        String nl = System.getProperty("line.separator");
+        while ((l = in.readLine()) != null) {
+            l = l + nl;
+            sb.append(l);
+        }
+        in.close();
+        data = sb.toString();
+        return data;
+    }
 }
