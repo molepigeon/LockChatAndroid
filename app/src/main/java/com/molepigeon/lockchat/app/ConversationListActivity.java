@@ -10,7 +10,6 @@ import android.nfc.NfcEvent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.provider.Settings;
 import android.provider.Settings.Secure;
 import android.util.Base64;
 import android.view.Menu;
@@ -21,28 +20,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-
-import java.io.StringReader;
-import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
-
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import static android.nfc.NdefRecord.createMime;
 
-public class ConversationListActivity extends Activity
-        implements CreateNdefMessageCallback {
+public class ConversationListActivity extends Activity implements CreateNdefMessageCallback {
 
     public static final String PEOPLE_MESSAGE = "people_message";
     public static final String ID_MESSAGE = "id_message";
@@ -123,6 +107,7 @@ public class ConversationListActivity extends Activity
             publicKeys.add(Base64.encodeToString(thisKey.getPublic().getEncoded(), Base64.URL_SAFE));
             adapter.notifyDataSetChanged();
             //End debug user
+
             new FindMyName().execute("");
 
         }
@@ -170,13 +155,6 @@ public class ConversationListActivity extends Activity
     @Override
     public NdefMessage createNdefMessage(NfcEvent event) {
         String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID) + " " + Base64.encodeToString(thisKey.getPublic().getEncoded(), Base64.URL_SAFE));
-//        Handler handler = new Handler();
-//        handler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                new getKey().execute("");
-//            }
-//        }, 5000);
         return new NdefMessage(
                 new NdefRecord[]{createMime(
                         "application/vnd.com.molepigeon.lockchat.app", text.getBytes())
@@ -202,23 +180,6 @@ public class ConversationListActivity extends Activity
             new UserGetter().execute();
             publicKeys.add(splitPayload[1]);
             lastNFC = nfcMessage;
-
-
-            //Encrypt our RSA key with AES and the AES key with the received RSA key
-            try {
-                KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-                keyGenerator.init(128);
-                SecretKey key = keyGenerator.generateKey();
-                Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-                cipher.init(Cipher.ENCRYPT_MODE, key);
-                encryptedRSA = cipher.doFinal(thisKey.getPublic().getEncoded());
-                cipher = Cipher.getInstance("RSA");
-                cipher.init(Cipher.ENCRYPT_MODE, KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(splitPayload[1].getBytes(), Base64.URL_SAFE))));
-                encryptedAES = cipher.doFinal(key.getEncoded());
-                //new sendKey().execute();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -265,62 +226,6 @@ public class ConversationListActivity extends Activity
         protected void onPostExecute(String result) {
             try {
                 myName = result;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private class sendKey extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... params) {
-            Network network = new Network();
-            String returned = null;
-
-            try {
-                String sessionKey = Base64.encodeToString(encryptedAES, Base64.URL_SAFE);
-                String payload = Base64.encodeToString(encryptedRSA, Base64.URL_SAFE);
-                returned = network.sendKey(nfcMessage, sessionKey, payload);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            return returned;
-        }
-    }
-
-    private class getKey extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... params) {
-            Network network = new Network();
-            String returned = null;
-
-            try {
-                returned = network.getKey(Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            return returned;
-        }
-
-        protected void onPostExecute(String result) {
-            try {
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder db = factory.newDocumentBuilder();
-                InputSource inStream = new InputSource();
-                inStream.setCharacterStream(new StringReader(result));
-                Document doc = db.parse(inStream);
-                Node n = doc.getFirstChild();
-                NodeList nl = n.getChildNodes();
-                for (int i = 0; i < nl.getLength(); i++) {
-                    if (nl.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
-                        nl.item(i).getTextContent();
-                        //TODO parse incoming key
-                    }
-                }
-                adapter.notifyDataSetChanged();
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
