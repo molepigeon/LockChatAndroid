@@ -39,8 +39,6 @@ public class ConversationListActivity extends Activity implements CreateNdefMess
     private static boolean firstRun = true;
     private static String lastNFC = "";
     NfcAdapter mNfcAdapter;
-    byte[] encryptedRSA;
-    byte[] encryptedAES;
     private String nfcMessage = "";
     private ArrayAdapter<String> adapter;
 
@@ -93,11 +91,6 @@ public class ConversationListActivity extends Activity implements CreateNdefMess
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-            //Test base64 encoding
-            String blah = "blah";
-            String blahEncoded = Base64.encodeToString(blah.getBytes(), Base64.DEFAULT);
-            System.out.println(new String(Base64.decode(blahEncoded.getBytes(), Base64.DEFAULT)));
 
             //DEBUG user - Delete this when finished
             String text = (Secure.getString(getContentResolver(), Secure.ANDROID_ID));

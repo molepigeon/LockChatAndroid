@@ -17,6 +17,8 @@ public class RegisterActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+        EditText editText = (EditText) findViewById(R.id.editText);
+        editText.setHint(ConversationListActivity.myName);
     }
 
     public void registerClicked(View view) {
