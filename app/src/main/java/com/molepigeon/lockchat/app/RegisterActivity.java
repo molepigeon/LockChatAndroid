@@ -48,6 +48,8 @@ public class RegisterActivity extends Activity {
     public void registerClicked(View view) {
         EditText editText = (EditText) findViewById(R.id.editText);
         messageText = editText.getText().toString();
+        ConversationListActivity.myName = messageText;
+        editText.setHint(messageText);
         new UserCreator().execute("");
     }
 
